@@ -1,0 +1,31 @@
+---
+- hosts: teste
+  remote_user: root
+  tasks:
+
+  - name: Cria grupo de usuários Ansible
+    group:
+      name: ansible
+      state: present
+
+  - name: Adicionar grupo ansible ao sudoers
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%ansible'
+      line: '%ansible ALL=(ALL) NOPASSWD: ALL'
+      validate: visudo -cf %s
+
+  - name: Criar usuario suporte
+    user:
+      name: suporte
+      group: ansible
+      shell: /bin/bash
+      create_home: true
+      state: present
+
+  - name: Configura authorized key para o usuário suporte
+    authorized_key:
+      user: suporte
+      state: present
+      key: "{{ lookup('file', '/home/vagrant/.ssh/id_rsa.pub') }}"
